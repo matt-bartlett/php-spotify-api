@@ -49,7 +49,7 @@ class RequestTest extends TestCase
     /**
      * @return void
      */
-    public function test_get_request_is_successful()
+    public function test_get_request_is_successful() : void
     {
         $expected = new stdClass;
         $expected->name = 'Test Playlist';
@@ -91,7 +91,7 @@ class RequestTest extends TestCase
     /**
      * @return void
      */
-    public function test_request_throws_authentication_exception()
+    public function test_request_throws_authentication_exception() : void
     {
         $this->expectException(AuthenticationException::class);
         $this->expectExceptionMessage('Your access token is invalid or has expired.');
@@ -114,7 +114,7 @@ class RequestTest extends TestCase
     /**
      * @return void
      */
-    public function test_exception_is_thrown_with_message()
+    public function test_exception_is_thrown_with_message() : void
     {
         $this->expectException(SpotifyRequestException::class);
         $this->expectExceptionMessage('Your request failed validation.');
