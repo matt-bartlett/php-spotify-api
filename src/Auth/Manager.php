@@ -4,8 +4,7 @@ namespace Spotify\Auth;
 
 use Carbon\Carbon;
 use Spotify\Auth\State;
-use SessionHandlerInterface;
-use Illuminate\Session\SessionManager;
+use Spotify\Contracts\Store\Session;
 use Spotify\Contracts\Auth\Authenticator;
 
 /**
@@ -21,24 +20,22 @@ class Manager
     private $authenticator;
 
     /**
-     * @var \Illuminate\Session\SessionManager
-     *
-     * @todo Replace with \SessionHandlerInterface
+     * @var \Spotify\Contracts\Store\Session
      */
     private $session;
 
     /**
      * @param \Spotify\Contracts\Auth\Authenticator $authenticator
-     * @param \Illuminate\Session\SessionManager    $session
+     * @param \Spotify\Contracts\Store\Session|null $session
      */
-    public function __construct(Authenticator $authenticator, SessionManager $session)
+    public function __construct(Authenticator $authenticator, Session $session = null)
     {
         $this->authenticator = $authenticator;
         $this->session = $session;
     }
 
     /**
-     * Retrieve the access token from the session,
+     * Retrieve a valid access token from the session,
      * or generate a fresh access token.
      *
      * @return string
@@ -57,8 +54,7 @@ class Manager
     }
 
     /**
-     * Update the access_token stored in the session
-     * and extend the expiration time.
+     * Update the access_token stored in the session.
      *
      * @param State $state
      *
@@ -66,19 +62,26 @@ class Manager
      */
     private function updateSession(State $state) : void
     {
-        $this->session->put([
-            'expires_at' => $state->getExpiresAt(),
-            'access_token' => $state->getAccessToken()
-        ]);
+        if (!is_null($this->session)) {
+            $this->session->put([
+                'expires_at' => $state->getExpiresAt(),
+                'access_token' => $state->getAccessToken()
+            ]);
+        }
     }
 
     /**
-     * Check if the current state is valid
+     * Check if the current state is valid.
      *
      * @return void
      */
     private function isTokenValid() : bool
     {
+        // Return early if no session is being used.
+        if (is_null($this->session)) {
+            return false;
+        }
+
         $expiresAt = $this->session->get('expires_at', false);
         $accessToken = $this->session->get('access_token', false);
 
