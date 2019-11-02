@@ -33,23 +33,13 @@ class PlaylistTest extends TestCase
     /**
      * @return void
      */
-    public function test_fetching_playlist_returns_object() : void
+    public function test_fetching_playlist_response() : void
     {
-        $result = (object) [
-            'name' => 'Playlist #1',
-            'owner' => 'Matt Bartlett',
-            'tracks' => [
-                (object) [
-                    'title' => 'Sanctuary',
-                    'artist' => 'Gareth Emery',
-                    'album' => 'Northern Lights'
-                ]
-            ]
-        ];
+        $json = file_get_contents(__DIR__ . '/../Fixtures/playlist.json');
 
         $this->requestMock->expects($this->once())
             ->method('get')
-            ->willReturn($result);
+            ->willReturn(json_decode($json));
 
         $this->managerMock->expects($this->once())
             ->method('getAccessToken')
@@ -57,8 +47,34 @@ class PlaylistTest extends TestCase
 
         $response = $this->playlist->getPlaylist('random-playlist-id');
 
-        $this->assertInternalType('object', $response);
-        $this->assertEquals('Playlist #1', $response->name);
-        $this->assertEquals('Matt Bartlett', $response->owner);
+        $this->assertEquals('Prouse', $response->name);
+        $this->assertEquals('Matt Bartlett', $response->owner->display_name);
+        $this->assertInternalType('array', $response->tracks->items);
+        $this->assertCount(5, $response->tracks->items);
+    }
+
+    /**
+     * @return void
+     */
+    public function test_fetching_playlist_tracks_response() : void
+    {
+        $json = file_get_contents(__DIR__ . '/../Fixtures/playlist-tracks.json');
+
+        $this->requestMock->expects($this->once())
+            ->method('get')
+            ->willReturn(json_decode($json));
+
+        $this->managerMock->expects($this->once())
+            ->method('getAccessToken')
+            ->willReturn('access-token');
+
+        $response = $this->playlist->getPlaylistTracks('random-playlist-id');
+
+        $this->assertInternalType('array', $response->items);
+        $this->assertCount(5, $response->items);
+
+        $firstTrack = $response->items[0];
+
+        $this->assertEquals('Destiny - Solid Stone Remix', $firstTrack->track->name);
     }
 }

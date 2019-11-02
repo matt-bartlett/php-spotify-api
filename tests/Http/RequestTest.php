@@ -49,7 +49,20 @@ class RequestTest extends TestCase
     /**
      * @return void
      */
-    public function test_request_throws_authentication_exception() : void
+    public function test_get_request_throws_authentication_exception() : void
+    {
+        $this->expectException(AuthenticationException::class);
+        $this->expectExceptionMessage('Your access token is invalid or has expired.');
+
+        $request = $this->createRequest(401);
+
+        $request->get(self::TEST_URL);
+    }
+
+    /**
+     * @return void
+     */
+    public function test_post_request_throws_authentication_exception() : void
     {
         $this->expectException(AuthenticationException::class);
         $this->expectExceptionMessage('Your access token is invalid or has expired.');
@@ -62,7 +75,20 @@ class RequestTest extends TestCase
     /**
      * @return void
      */
-    public function test_exception_is_thrown_with_message() : void
+    public function test_get_exception_is_thrown_with_message() : void
+    {
+        $this->expectException(SpotifyRequestException::class);
+        $this->expectExceptionMessage('Bad Request');
+
+        $request = $this->createRequest(400);
+
+        $request->get(self::TEST_URL);
+    }
+
+    /**
+     * @return void
+     */
+    public function test_post_exception_is_thrown_with_message() : void
     {
         $this->expectException(SpotifyRequestException::class);
         $this->expectExceptionMessage('Bad Request');
