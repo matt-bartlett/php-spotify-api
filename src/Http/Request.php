@@ -49,7 +49,8 @@ class Request
         try {
             $response = $this->guzzle->request(self::METHOD_GET, $url, [
                 'headers' => array_merge(
-                    $this->getDefaultHeaders(self::METHOD_GET), $headers
+                    $this->getDefaultHeaders(self::METHOD_GET),
+                    $headers
                 ),
             ]);
         } catch (ClientException $e) {
@@ -84,7 +85,8 @@ class Request
         try {
             $response = $this->guzzle->request(self::METHOD_POST, $url, [
                 'headers' => array_merge(
-                    $this->getDefaultHeaders(self::METHOD_POST), $headers
+                    $this->getDefaultHeaders(self::METHOD_POST),
+                    $headers
                 ),
                 'form_params' => $parameters,
             ]);

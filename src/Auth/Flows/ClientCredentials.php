@@ -45,7 +45,9 @@ class ClientCredentials implements Authenticator
     {
         // Encode the app Client ID & Client Secret for authorization.
         $token = base64_encode(sprintf(
-            '%s:%s', $this->credentials->getClientId(), $this->credentials->getClientSecret()
+            '%s:%s',
+            $this->credentials->getClientId(),
+            $this->credentials->getClientSecret()
         ));
 
         // Set headers.
