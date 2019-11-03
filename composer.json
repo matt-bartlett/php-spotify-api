@@ -4,6 +4,10 @@
     "type": "library",
     "homepage": "https://github.com/matt-bartlett/php-spotify-api",
     "license": "MIT",
+    "keywords": [
+        "php",
+        "spotify"
+    ],
     "authors": [
         {
             "name": "Matt Bartlett",
