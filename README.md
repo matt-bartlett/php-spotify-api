@@ -1,6 +1,6 @@
 # Spotify PHP Library
 
-This is a framework agnostic PHP library for interacting with the Spotify Web API.
+This is a framework agnostic PHP library for interacting with the Spotify Web API. *This package is under development.*
 
 ## Intentions
 
@@ -57,50 +57,73 @@ This example demonstrates the high level flow. I wouldn't recommend instantiatin
 ### Laravel Example
 Now, for a more specific (workable) example, I'll demonstrate how best to use this package within Laravel.
 
-First, you'll resolve the required dependencies using a Service Provider. Within `App\Providers\AppServiceProvider`, add the following to the `register()` method.
+First, you'll resolve the required dependencies using a Service Provider. Create a new service provider within `App\Provider` and paste the following:
 
 ```php
-// These should be added to the top of your ServiceProvider class.
+<?php
+
+namespace Your\Namespace;
+
 use Spotify\Http\Request;
 use Spotify\Auth\Credentials;
 use Illuminate\Session\Store;
 use Spotify\Contracts\Store\Session;
+use Illuminate\Support\ServiceProvider;
 use Spotify\Auth\Flows\ClientCredentials;
 use Spotify\Contracts\Auth\Authenticator;
 use Spotify\Sessions\LaravelSessionHandler;
 
-// Bind Spotify credentials.
-$this->app->singleton(Credentials::class, function ($app) {
-    return new Credentials(
-        getenv('SPOTIFY_CLIENT_ID'),
-        getenv('SPOTIFY_CLIENT_SECRET'),
-        getenv('SPOTIFY_REDIRECT_URL')
-    );
-});
+/**
+ * Class SpotifyServiceProvider
+ *
+ * @package Spotify
+ */
+class SpotifyServiceProvider extends ServiceProvider
+{
+    /**
+     * Register any application services.
+     *
+     * @return void
+     */
+    public function register()
+    {
+        // Bind Spotify credentials.
+        $this->app->singleton(Credentials::class, function () {
+            return new Credentials(
+                getenv('SPOTIFY_CLIENT_ID'),
+                getenv('SPOTIFY_CLIENT_SECRET'),
+                getenv('SPOTIFY_REDIRECT_URL')
+            );
+        });
 
-// Bind Client Credentials to the Spotify authenticator.
-$this->app->bind(Authenticator::class, function ($app) {
-    return new ClientCredentials(
-        $app->make(Request::class),
-        $app->make(Credentials::class)
-    );
-});
+        // Bind Client Credentials to the Spotify authenticator.
+        $this->app->bind(Authenticator::class, function ($app) {
+            return new ClientCredentials(
+                $app->make(Request::class),
+                $app->make(Credentials::class)
+            );
+        });
 
-// Optional. Only if you want to use your Session driver.
-// Bind the Laravel Session handler.
-$this->app->bind(Session::class, function ($app) {
-    return new LaravelSessionHandler(
-        $app->make(Store::class)
-    );
-});
+        // Bind the Laravel Session handler.
+        $this->app->bind(Session::class, function ($app) {
+            return new LaravelSessionHandler(
+                $app->make(Store::class)
+            );
+        });
+    }
+}
 ```
+
+Next, in your `config/app.php`, be sure to add this service provider to the `providers` array.
 
 `LaravelSessionHandler` extends Laravel's session interface, allowing you to leverage the session driver you have configured within your application.
 
-With the Service Provider boilerplate added, I'll demonstrate how to pull this into your application.
+With the service provider added, I'll demonstrate how to pull this into your application.
 
 ```php
 <?php
+
+namespace App\Http\Controllers;
 
 use Spotify\Resources\Playlist;
 
@@ -121,19 +144,3 @@ class ExampleController extends Controller
     }
 }
 ```
-
-## MVP Functionality
-- [ ] Allow [Client Credentials](https://developer.spotify.com/documentation/general/guides/authorization-guide/#client-credentials-flow) authentication
-- [ ] Abstract Session Management
-- [ ] Fetch [Playlist & Playlist Tracks](https://developer.spotify.com/documentation/web-api/reference/playlists/)
-
-## Future Functionality
-- [ ] Allow [Authorization Code Flow](https://developer.spotify.com/documentation/general/guides/authorization-guide/#authorization-code-flow)
-- [ ] Allow Scope requesting
-- [ ] Transform/Hydrate API responses into a consistent format
-
-Expand to other Spotify API endpoints:
-
-- [ ] [Create Playlists](https://developer.spotify.com/documentation/web-api/reference/playlists/create-playlist/)
-- [ ] [Recommendations](https://developer.spotify.com/documentation/web-api/reference/browse/get-recommendations/)
-- [ ] Allow for pagniation
