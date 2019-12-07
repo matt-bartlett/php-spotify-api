@@ -3,8 +3,6 @@
 namespace Spotify\Resources;
 
 use stdClass;
-use Spotify\Resource;
-use Spotify\Http\Request;
 
 /**
  * Class Playlist

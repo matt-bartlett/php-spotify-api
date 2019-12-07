@@ -1,6 +1,6 @@
 <?php
 
-namespace Spotify;
+namespace Spotify\Resources;
 
 use Spotify\Http\Request;
 use Spotify\Auth\Manager;
@@ -8,9 +8,9 @@ use Spotify\Auth\Manager;
 /**
  * Class Resource
  *
- * @package Spotify
+ * @package Spotify\Resources
  */
-class Resource
+abstract class Resource
 {
     protected const API_BASE_URL = 'https://api.spotify.com/v1';
 
