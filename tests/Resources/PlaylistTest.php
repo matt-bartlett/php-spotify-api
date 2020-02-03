@@ -2,7 +2,7 @@
 
 namespace Spotify\Tests\Resources;
 
-use Spotify\Auth\Manager;
+use Spotify\Manager;
 use Spotify\Http\Request;
 use Spotify\Resources\Playlist;
 use PHPUnit\Framework\TestCase;

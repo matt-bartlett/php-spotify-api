@@ -3,8 +3,8 @@
 namespace Spotify\Resources;
 
 use stdClass;
+use Spotify\Manager;
 use Spotify\Http\Request;
-use Spotify\Auth\Manager;
 use Spotify\Constants\Auth;
 
 /**
@@ -22,13 +22,13 @@ abstract class Resource
     protected $request;
 
     /**
-     * @var \Spotify\Auth\Manager
+     * @var \Spotify\Manager
      */
     protected $manager;
 
     /**
      * @param \Spotify\Http\Request $request
-     * @param \Spotify\Auth\Manager $manager
+     * @param \Spotify\Manager $manager
      */
     public function __construct(Request $request, Manager $manager)
     {

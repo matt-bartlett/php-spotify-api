@@ -3,8 +3,8 @@
 namespace Spotify\Tests\Auth;
 
 use Carbon\Carbon;
+use Spotify\Manager;
 use Spotify\Auth\State;
-use Spotify\Auth\Manager;
 use Spotify\Constants\Auth;
 use InvalidArgumentException;
 use PHPUnit\Framework\TestCase;

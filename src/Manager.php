@@ -1,6 +1,6 @@
 <?php
 
-namespace Spotify\Auth;
+namespace Spotify;
 
 use Carbon\Carbon;
 use Spotify\Auth\State;
