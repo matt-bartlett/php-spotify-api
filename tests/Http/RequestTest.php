@@ -5,6 +5,7 @@ namespace Spotify\Tests\Http;
 use stdClass;
 use GuzzleHttp\Client;
 use Spotify\Http\Request;
+use Spotify\Constants\Http;
 use GuzzleHttp\HandlerStack;
 use PHPUnit\Framework\TestCase;
 use GuzzleHttp\Handler\MockHandler;
@@ -26,7 +27,7 @@ class RequestTest extends TestCase
 
         $request = $this->createRequest(200, json_encode($expected));
 
-        $response = $request->get(self::TEST_URL, ['foo' => 'bar'], ['foo' => 'bar']);
+        $response = $request->send(Http::GET, self::TEST_URL, []);
 
         $this->assertEquals($response, $expected);
     }
@@ -41,7 +42,7 @@ class RequestTest extends TestCase
 
         $request = $this->createRequest(200, json_encode($expected));
 
-        $response = $request->post(self::TEST_URL, ['foo' => 'bar'], ['foo' => 'bar']);
+        $response = $request->send(Http::POST, self::TEST_URL, ['foo' => 'bar']);
 
         $this->assertEquals($response, $expected);
     }
@@ -56,7 +57,7 @@ class RequestTest extends TestCase
 
         $request = $this->createRequest(401);
 
-        $request->get(self::TEST_URL);
+        $request->send(Http::GET, self::TEST_URL, []);
     }
 
     /**
@@ -69,7 +70,7 @@ class RequestTest extends TestCase
 
         $request = $this->createRequest(401);
 
-        $request->post(self::TEST_URL);
+        $request->send(Http::POST, self::TEST_URL, []);
     }
 
     /**
@@ -78,11 +79,11 @@ class RequestTest extends TestCase
     public function test_get_exception_is_thrown_with_message() : void
     {
         $this->expectException(SpotifyRequestException::class);
-        $this->expectExceptionMessage('API call to [https://api.spotify.com/v1/playlist/1?] has failed.');
+        $this->expectExceptionMessage('API call to [https://api.spotify.com/v1/playlist/1] has failed.');
 
         $request = $this->createRequest(400);
 
-        $request->get(self::TEST_URL);
+        $request->send(Http::GET, self::TEST_URL, []);
     }
 
     /**
@@ -95,7 +96,7 @@ class RequestTest extends TestCase
 
         $request = $this->createRequest(400);
 
-        $request->post(self::TEST_URL);
+        $request->send(Http::POST, self::TEST_URL, []);
     }
 
     /**

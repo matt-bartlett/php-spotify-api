@@ -4,6 +4,8 @@ namespace Spotify\Resources;
 
 use stdClass;
 use Spotify\Constants\Auth;
+use Spotify\Constants\Http;
+use GuzzleHttp\RequestOptions;
 
 /**
  * Class User
@@ -13,7 +15,7 @@ use Spotify\Constants\Auth;
 class User extends Resource
 {
     /**
-     * ...
+     * Get the profile of the currently authenticated user.
      *
      * @return stdClass
      */
@@ -21,8 +23,12 @@ class User extends Resource
     {
         $url = sprintf('%s/me', self::API_BASE_URL);
 
-        return $this->request->get($url, [
-            'Authorization' => sprintf('Bearer %s', $this->getAccessToken(Auth::USER_ENTITY)),
-        ]);
+        $payload = [
+            RequestOptions::HEADERS => [
+                'Authorization' => sprintf('Bearer %s', $this->getAccessToken(Auth::USER_ENTITY)),
+            ]
+        ];
+
+        return $this->request->send(Http::GET, $url, $payload);
     }
 }

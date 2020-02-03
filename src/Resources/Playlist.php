@@ -4,6 +4,8 @@ namespace Spotify\Resources;
 
 use stdClass;
 use Spotify\Constants\Auth;
+use Spotify\Constants\Http;
+use GuzzleHttp\RequestOptions;
 
 /**
  * Class Playlist
@@ -23,9 +25,13 @@ class Playlist extends Resource
     {
         $url = sprintf('%s/playlists/%s', self::API_BASE_URL, $playlist);
 
-        return $this->request->get($url, [
-            'Authorization' => sprintf('Bearer %s', $this->getAccessToken(Auth::CLIENT_ENTITY)),
-        ]);
+        $payload = [
+            RequestOptions::HEADERS => [
+                'Authorization' => sprintf('Bearer %s', $this->getAccessToken(Auth::CLIENT_ENTITY)),
+            ]
+        ];
+
+        return $this->request->send(Http::GET, $url, $payload);
     }
 
     /**
@@ -39,9 +45,13 @@ class Playlist extends Resource
     {
         $url = sprintf('%s/playlists/%s/tracks', self::API_BASE_URL, $playlist);
 
-        return $this->request->get($url, [
-            'Authorization' => sprintf('Bearer %s', $this->getAccessToken(Auth::CLIENT_ENTITY)),
-        ]);
+        $payload = [
+            RequestOptions::HEADERS => [
+                'Authorization' => sprintf('Bearer %s', $this->getAccessToken(Auth::CLIENT_ENTITY)),
+            ]
+        ];
+
+        return $this->request->send(Http::GET, $url, $payload);
     }
 
     /**
@@ -65,17 +75,18 @@ class Playlist extends Resource
 
         $url = sprintf('%s/users/%s/playlists', self::API_BASE_URL, $user->id);
 
-        $headers = [
-            'Authorization' => sprintf('Bearer %s', $this->getAccessToken(Auth::USER_ENTITY))
+        $payload = [
+            RequestOptions::HEADERS => [
+                'Authorization' => sprintf('Bearer %s', $this->getAccessToken(Auth::USER_ENTITY)),
+            ],
+            RequestOptions::JSON => [
+                'name' => $name,
+                'public' => $public,
+                'description' => $description,
+                'collaborative' => $collaborative,
+            ],
         ];
 
-        $params = [
-            'name' => $name,
-            'public' => $public,
-            'collaborative' => $collaborative,
-            'description' => $description,
-        ];
-
-        return $this->request->json('POST', $url, $headers, $params);
+        return $this->request->send(Http::POST, $url, $payload);
     }
 }

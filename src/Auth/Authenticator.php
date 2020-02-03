@@ -6,7 +6,9 @@ use Spotify\Auth\State;
 use Spotify\Http\Request;
 use Spotify\Auth\Credentials;
 use Spotify\Constants\Auth;
+use Spotify\Constants\Http;
 use Spotify\Constants\Grant;
+use GuzzleHttp\RequestOptions;
 use Spotify\Contracts\Auth\Authenticator as AuthInterface;
 
 /**
@@ -79,20 +81,15 @@ class Authenticator implements AuthInterface
      */
     public function requestAccessToken(string $code) : State
     {
-        // Set headers.
-        $headers = [
-            'Authorization' => sprintf('Basic %s', $this->tokenizeClientCredentials()),
-        ];
+        $payload = array_merge($this->getDefaultHeaders(), [
+            RequestOptions::FORM_PARAMS => [
+                'code' => $code,
+                'grant_type' => Grant::AUTHORIZATION_CODE,
+                'redirect_uri' => $this->credentials->getRedirectUrl(),
+            ]
+        ]);
 
-        // Set POST params.
-        $parameters = [
-            'code' => $code,
-            'grant_type' => Grant::AUTHORIZATION_CODE,
-            'redirect_uri' => $this->credentials->getRedirectUrl(),
-        ];
-
-        // Make request for access token.
-        $response = $this->request->post(self::TOKEN_URL, $headers, $parameters);
+        $response = $this->request->send(Http::POST, self::TOKEN_URL, $payload);
 
         return new State(
             Auth::USER_ENTITY,
@@ -109,18 +106,13 @@ class Authenticator implements AuthInterface
      */
     public function requestCredentialsToken() : State
     {
-        // Set headers.
-        $headers = [
-            'Authorization' => sprintf('Basic %s', $this->tokenizeClientCredentials()),
-        ];
+        $payload = array_merge($this->getDefaultHeaders(), [
+            RequestOptions::FORM_PARAMS => [
+                'grant_type' => Grant::CLIENT_CREDENTIALS,
+            ]
+        ]);
 
-        // Set POST params.
-        $parameters = [
-            'grant_type' => Grant::CLIENT_CREDENTIALS,
-        ];
-
-        // Make request for access token.
-        $response = $this->request->post(self::TOKEN_URL, $headers, $parameters);
+        $response = $this->request->send(Http::POST, self::TOKEN_URL, $payload);
 
         return new State(
             Auth::CLIENT_ENTITY,
@@ -138,19 +130,14 @@ class Authenticator implements AuthInterface
      */
     public function refreshToken(string $refreshToken) : State
     {
-        // Set headers.
-        $headers = [
-            'Authorization' => sprintf('Basic %s', $this->tokenizeClientCredentials()),
-        ];
+        $payload = array_merge($this->getDefaultHeaders(), [
+            RequestOptions::FORM_PARAMS => [
+                'grant_type' => Grant::REFRESH_TOKEN,
+                'refresh_token' => $refreshToken,
+            ]
+        ]);
 
-        // Set POST params.
-        $parameters = [
-            'grant_type' => Grant::REFRESH_TOKEN,
-            'refresh_token' => $refreshToken,
-        ];
-
-        // Make request for access token.
-        $response = $this->request->post(self::TOKEN_URL, $headers, $parameters);
+        $response = $this->request->send(Http::POST, self::TOKEN_URL, $payload);
 
         return new State(
             Auth::USER_ENTITY,
@@ -165,12 +152,18 @@ class Authenticator implements AuthInterface
      *
      * @return string
      */
-    private function tokenizeClientCredentials()
+    private function getDefaultHeaders()
     {
-        return base64_encode(sprintf(
+        $token = base64_encode(sprintf(
             '%s:%s',
             $this->credentials->getClientId(),
             $this->credentials->getClientSecret()
         ));
+
+        return [
+            RequestOptions::HEADERS => [
+                'Authorization' => sprintf('Basic %s', $token),
+            ]
+        ];
     }
 }

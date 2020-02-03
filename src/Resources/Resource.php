@@ -6,6 +6,8 @@ use stdClass;
 use Spotify\Manager;
 use Spotify\Http\Request;
 use Spotify\Constants\Auth;
+use Spotify\Constants\Http;
+use GuzzleHttp\RequestOptions;
 
 /**
  * Class Resource
@@ -57,8 +59,12 @@ abstract class Resource
     {
         $url = sprintf('%s/me', self::API_BASE_URL);
 
-        return $this->request->get($url, [
-            'Authorization' => sprintf('Bearer %s', $this->getAccessToken(Auth::USER_ENTITY)),
-        ]);
+        $payload = [
+            RequestOptions::HEADERS => [
+                'Authorization' => sprintf('Bearer %s', $this->getAccessToken(Auth::USER_ENTITY)),
+            ]
+        ];
+
+        return $this->request->send(Http::GET, $url, $payload);
     }
 }

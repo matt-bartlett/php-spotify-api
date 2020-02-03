@@ -20,7 +20,7 @@ class AuthenticatorTest extends TestCase
     {
         $this->requestMock = $this->getMockBuilder(Request::class)
             ->disableOriginalConstructor()
-            ->setMethods(['post'])
+            ->setMethods(['send'])
             ->getMock();
 
         $this->credentials = new Credentials(
@@ -59,7 +59,7 @@ class AuthenticatorTest extends TestCase
         $result->access_token = 'access-token';
 
         $this->requestMock->expects($this->once())
-            ->method('post')
+            ->method('send')
             ->willReturn($result);
 
         $state = $this->authenticator->requestCredentialsToken();
@@ -80,7 +80,7 @@ class AuthenticatorTest extends TestCase
         $result->refresh_token = 'refresh-token';
 
         $this->requestMock->expects($this->once())
-            ->method('post')
+            ->method('send')
             ->willReturn($result);
 
         $state = $this->authenticator->requestAccessToken('random-code');
@@ -101,7 +101,7 @@ class AuthenticatorTest extends TestCase
         $result->refresh_token = 'new-refresh-token';
 
         $this->requestMock->expects($this->once())
-            ->method('post')
+            ->method('send')
             ->willReturn($result);
 
         $state = $this->authenticator->refreshToken('refresh-token');

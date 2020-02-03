@@ -16,7 +16,7 @@ class PlaylistTest extends TestCase
     {
         $this->requestMock = $this->getMockBuilder(Request::class)
             ->disableOriginalConstructor()
-            ->setMethods(['get'])
+            ->setMethods(['send'])
             ->getMock();
 
         $this->managerMock = $this->getMockBuilder(Manager::class)
@@ -38,7 +38,7 @@ class PlaylistTest extends TestCase
         $json = file_get_contents(__DIR__ . '/../Fixtures/playlist.json');
 
         $this->requestMock->expects($this->once())
-            ->method('get')
+            ->method('send')
             ->willReturn(json_decode($json));
 
         $this->managerMock->expects($this->once())
@@ -61,7 +61,7 @@ class PlaylistTest extends TestCase
         $json = file_get_contents(__DIR__ . '/../Fixtures/playlist-tracks.json');
 
         $this->requestMock->expects($this->once())
-            ->method('get')
+            ->method('send')
             ->willReturn(json_decode($json));
 
         $this->managerMock->expects($this->once())
