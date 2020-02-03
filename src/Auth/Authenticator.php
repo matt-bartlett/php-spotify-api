@@ -56,14 +56,10 @@ class Authenticator implements AuthInterface
      */
     public function getAuthorizationUrl(array $scopes, bool $showDialog) : string
     {
-        // ...
-        $state = bin2hex(random_bytes(10));
-
-        // ...
+        // Concatenate scopes.
         $scopes = isset($scopes) ? implode(' ', $scopes) : null;
 
         $parameters = [
-            'state' => $state,
             'scope' => $scopes,
             'client_id' => $this->credentials->getClientId(),
             'show_dialog' => $showDialog,

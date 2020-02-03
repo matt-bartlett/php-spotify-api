@@ -54,6 +54,14 @@ class State
     /**
      * @return string
      */
+    public function getType() : string
+    {
+        return $this->type;
+    }
+
+    /**
+     * @return string
+     */
     public function getAccessToken() : string
     {
         return $this->accessToken;
@@ -73,18 +81,6 @@ class State
     public function getExpiresAt() : int
     {
         return $this->expiresAt;
-    }
-
-    /**
-     * @return array
-     */
-    public function toArray() : array
-    {
-        return [
-            'expires_at' => $this->getExpiresAt(),
-            'access_token' => $this->getAccessToken(),
-            'resfresh_token' => $this->getRefreshToken(),
-        ];
     }
 
     /**

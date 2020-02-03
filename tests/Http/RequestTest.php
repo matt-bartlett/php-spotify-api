@@ -78,7 +78,7 @@ class RequestTest extends TestCase
     public function test_get_exception_is_thrown_with_message() : void
     {
         $this->expectException(SpotifyRequestException::class);
-        $this->expectExceptionMessage('Bad Request');
+        $this->expectExceptionMessage('API call to [https://api.spotify.com/v1/playlist/1?] has failed.');
 
         $request = $this->createRequest(400);
 
@@ -91,7 +91,7 @@ class RequestTest extends TestCase
     public function test_post_exception_is_thrown_with_message() : void
     {
         $this->expectException(SpotifyRequestException::class);
-        $this->expectExceptionMessage('Bad Request');
+        $this->expectExceptionMessage('API call to [https://api.spotify.com/v1/playlist/1] has failed.');
 
         $request = $this->createRequest(400);
 

@@ -56,13 +56,15 @@ class Manager
      *
      * @param string $code
      *
-     * @return void
+     * @return State
      */
-    public function handleCallback(string $code) : void
+    public function handleCallback(string $code) : State
     {
         $state = $this->authenticator->requestAccessToken($code);
 
         $this->updateSession(Auth::USER_ENTITY, $state);
+
+        return $state;
     }
 
     /**
@@ -102,11 +104,10 @@ class Manager
                 }
 
                 $state = $this->authenticator->requestCredentialsToken();
-
                 break;
 
             default:
-                throw new \InvalidArgumentException(sprintf('[%s] is an unsupported type.'), $type);
+                throw new \InvalidArgumentException(sprintf('[%s] is an unsupported type.', $type));
         }
 
         $this->updateSession($type, $state);

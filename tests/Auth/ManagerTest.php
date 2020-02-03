@@ -5,9 +5,12 @@ namespace Spotify\Tests\Auth;
 use Carbon\Carbon;
 use Spotify\Auth\State;
 use Spotify\Auth\Manager;
+use Spotify\Constants\Auth;
+use InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
 use Spotify\Contracts\Store\Session;
 use Spotify\Contracts\Auth\Authenticator;
+use Spotify\Exceptions\UserHasNotAuthorizedException;
 
 class ManagerTest extends TestCase
 {
@@ -21,29 +24,34 @@ class ManagerTest extends TestCase
 
         $this->authMock = $this->getMockBuilder(Authenticator::class)
             ->disableOriginalConstructor()
-            ->setMethods(['requestAccessToken'])
+            ->setMethods([
+                'refreshToken',
+                'getAuthorizationUrl',
+                'requestAccessToken',
+                'requestCredentialsToken',
+            ])
             ->getMock();
 
         $this->sessionMock = $this->getMockBuilder(Session::class)
             ->disableOriginalConstructor()
-            ->setMethods(['get', 'put'])
+            ->setMethods(['get', 'put', 'forget'])
             ->getMock();
     }
 
     /**
      * @return void
      */
-    public function test_retrieving_fresh_access_token() : void
+    public function test_client_retrieving_fresh_access_token() : void
     {
-        $state = new State('fresh-access-token', 3600);
+        $state = new State(Auth::CLIENT_ENTITY, 'fresh-access-token', 3600);
 
         $this->authMock->expects($this->once())
-            ->method('requestAccessToken')
+            ->method('requestCredentialsToken')
             ->willReturn($state);
 
         $manager = new Manager($this->authMock, $this->sessionMock);
 
-        $token = $manager->getAccessToken();
+        $token = $manager->getAccessToken(Auth::CLIENT_ENTITY);
 
         $this->assertEquals($token, 'fresh-access-token');
     }
@@ -51,60 +59,152 @@ class ManagerTest extends TestCase
     /**
      * @return void
      */
-    public function test_retrieving_fresh_access_token_without_session() : void
+    public function test_client_retrieving_expired_access_token_from_session() : void
     {
-        $state = new State('fresh-access-token', 3600);
+        $state = new State(Auth::CLIENT_ENTITY, 'access-token', 3600);
 
-        $this->authMock->expects($this->once())
-            ->method('requestAccessToken')
-            ->willReturn($state);
-
-        $manager = new Manager($this->authMock);
-
-        $token = $manager->getAccessToken();
-
-        $this->assertEquals($token, 'fresh-access-token');
-    }
-
-    /**
-     * @return void
-     */
-    public function test_retrieving_expired_access_token_from_session() : void
-    {
-        $state = new State('fresh-access-token', 3600);
-
-        $this->authMock->expects($this->once())
-            ->method('requestAccessToken')
-            ->willReturn($state);
-
-        $this->sessionMock->expects($this->exactly(2))
+        $this->sessionMock->expects($this->once())
             ->method('get')
-            ->will($this->onConsecutiveCalls(false, false));
+            ->willReturn($state);
+
+        // Set Carbon 2 hours ahead.
+        Carbon::setTestNow(Carbon::create(2019, 9, 1, 14, 0, 0));
+
+        $state = new State(Auth::USER_ENTITY, 'new-access-token', 3600);
+
+        $this->authMock->expects($this->once())
+            ->method('requestCredentialsToken')
+            ->willReturn($state);
 
         $manager = new Manager($this->authMock, $this->sessionMock);
 
-        $token = $manager->getAccessToken();
+        $token = $manager->getAccessToken(Auth::CLIENT_ENTITY);
 
-        $this->assertEquals($token, 'fresh-access-token');
+        $this->assertEquals($token, 'new-access-token');
     }
 
     /**
      * @return void
      */
-    public function test_retrieving_access_token_from_session() : void
+    public function test_client_retrieving_access_token_from_session() : void
     {
-        $this->sessionMock->expects($this->exactly(3))
+        $state = new State(Auth::CLIENT_ENTITY, 'stored-access-token', 3600);
+
+        $this->sessionMock->expects($this->once())
             ->method('get')
-            ->will($this->onConsecutiveCalls(
-                Carbon::now()->addHour()->timestamp,
-                'stored-access-token',
-                'stored-access-token'
-            ));
+            ->willReturn($state);
 
         $manager = new Manager($this->authMock, $this->sessionMock);
 
-        $token = $manager->getAccessToken();
+        $token = $manager->getAccessToken(Auth::CLIENT_ENTITY);
 
         $this->assertEquals($token, 'stored-access-token');
+    }
+
+    /**
+     * @return void
+     */
+    public function test_authorization_url_generation() : void
+    {
+        $this->authMock->expects($this->once())
+            ->method('getAuthorizationUrl')
+            ->willReturn('https://accounts.spotify.com/authorize/random-url');
+
+        $manager = new Manager($this->authMock, $this->sessionMock);
+
+        $url = $manager->getAuthorizationUrl([], true);
+
+        $this->assertEquals($url, 'https://accounts.spotify.com/authorize/random-url');
+    }
+
+    /**
+     * @return void
+     */
+    public function test_callback_handler() : void
+    {
+        $state = new State(Auth::USER_ENTITY, 'access-token', 3600, 'refresh-token');
+
+        $this->authMock->expects($this->once())
+            ->method('requestAccessToken')
+            ->willReturn($state);
+
+        $manager = new Manager($this->authMock, $this->sessionMock);
+
+        $state = $manager->handleCallback('random-code');
+
+        $this->assertEquals($state->getType(), Auth::USER_ENTITY);
+        $this->assertEquals($state->getAccessToken(), 'access-token');
+        $this->assertEquals($state->getRefreshToken(), 'refresh-token');
+    }
+
+    /**
+     * @return void
+     */
+    public function test_user_retrieving_access_token_with_invalid_type() : void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('[invalid-type] is an unsupported type.');
+
+        $manager = new Manager($this->authMock, $this->sessionMock);
+
+        $manager->getAccessToken('invalid-type');
+    }
+
+    /**
+     * @return void
+     */
+    public function test_user_retrieving_access_token_without_authorizing_fails() : void
+    {
+        $this->expectException(UserHasNotAuthorizedException::class);
+        $this->expectExceptionMessage('User has not yet been authorized.');
+
+        $manager = new Manager($this->authMock, $this->sessionMock);
+
+        $manager->getAccessToken(Auth::USER_ENTITY);
+    }
+
+    /**
+     * @return void
+     */
+    public function test_user_retrieving_access_token_from_session() : void
+    {
+        $state = new State(Auth::USER_ENTITY, 'access-token', 3600, 'refresh-token');
+
+        $this->sessionMock->expects($this->once())
+            ->method('get')
+            ->willReturn($state);
+
+        $manager = new Manager($this->authMock, $this->sessionMock);
+
+        $token = $manager->getAccessToken(Auth::USER_ENTITY);
+
+        $this->assertEquals($token, 'access-token');
+    }
+
+    /**
+     * @return void
+     */
+    public function test_user_refreshes_expired_access_token() : void
+    {
+        $state = new State(Auth::USER_ENTITY, 'access-token', 3600, 'refresh-token');
+
+        $this->sessionMock->expects($this->once())
+            ->method('get')
+            ->willReturn($state);
+
+        // Set Carbon 2 hours ahead.
+        Carbon::setTestNow(Carbon::create(2019, 9, 1, 14, 0, 0));
+
+        $state = new State(Auth::USER_ENTITY, 'new-access-token', 3600, 'new-refresh-token');
+
+        $this->authMock->expects($this->once())
+            ->method('refreshToken')
+            ->willReturn($state);
+
+        $manager = new Manager($this->authMock, $this->sessionMock);
+
+        $token = $manager->getAccessToken(Auth::USER_ENTITY);
+
+        $this->assertEquals($token, 'new-access-token');
     }
 }
