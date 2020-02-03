@@ -26,6 +26,8 @@ class LaravelSessionHandler implements Session
     }
 
     /**
+     * Retrieve a value from the session matching the reference key.
+     *
      * @param string $key
      * @param mixed $default
      *
@@ -37,6 +39,8 @@ class LaravelSessionHandler implements Session
     }
 
     /**
+     * Add data to the session.
+     *
      * @param array $data
      *
      * @return void
@@ -44,5 +48,17 @@ class LaravelSessionHandler implements Session
     public function put(array $data) : void
     {
         $this->session->put($data);
+    }
+
+    /**
+     * Remove data from the session.
+     *
+     * @param string $key
+     *
+     * @return void
+     */
+    public function forget(string $key) : void
+    {
+        $this->session->forget($key);
     }
 }

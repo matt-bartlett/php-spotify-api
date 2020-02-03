@@ -4,8 +4,10 @@ namespace Spotify\Auth;
 
 use Carbon\Carbon;
 use Spotify\Auth\State;
+use Spotify\Constants\Auth;
 use Spotify\Contracts\Store\Session;
 use Spotify\Contracts\Auth\Authenticator;
+use Spotify\Exceptions\UserHasNotAuthorizedException;
 
 /**
  * Class Manager
@@ -26,29 +28,88 @@ class Manager
 
     /**
      * @param \Spotify\Contracts\Auth\Authenticator $authenticator
-     * @param \Spotify\Contracts\Store\Session|null $session
+     * @param \Spotify\Contracts\Store\Session $session
      */
-    public function __construct(Authenticator $authenticator, Session $session = null)
+    public function __construct(Authenticator $authenticator, Session $session)
     {
         $this->authenticator = $authenticator;
         $this->session = $session;
     }
 
     /**
-     * Retrieve a valid access token from the session,
-     * or generate a fresh access token.
+     * Generate the authorization URL for authenticating using the Authorization Flow.
+     * https://developer.spotify.com/documentation/general/guides/authorization-guide/#authorization-code-flow
+     *
+     * @param array $scopes
+     * @param bool $showDialog
      *
      * @return string
      */
-    public function getAccessToken() : string
+    public function getAuthorizationUrl(array $scopes, bool $showDialog) : string
     {
-        if ($this->isTokenValid()) {
-            return $this->session->get('access_token');
+        return $this->authenticator->getAuthorizationUrl($scopes, $showDialog);
+    }
+
+    /**
+     * Handle the callback from the Spotify API. It should exchange the code
+     * for an access token and save it to our session.
+     *
+     * @param string $code
+     *
+     * @return void
+     */
+    public function handleCallback(string $code) : void
+    {
+        $state = $this->authenticator->requestAccessToken($code);
+
+        $this->updateSession(Auth::USER_ENTITY, $state);
+    }
+
+    /**
+     * Retrieve a valid access token from the session,
+     * or generate a fresh access token.
+     *
+     * @param string $type
+     *
+     * @throws \InvalidArgumentException
+     * @throws \Spotify\Exceptions\UserHasNotAuthorizedException
+     *
+     * @return string
+     */
+    public function getAccessToken(string $type) : string
+    {
+        switch ($type) {
+            case Auth::USER_ENTITY:
+                $state = $this->session->get(Auth::USER_ENTITY);
+
+                if (is_null($state)) {
+                    throw new UserHasNotAuthorizedException;
+                }
+
+                if ($this->isStateValid($state)) {
+                    return $state->getAccessToken();
+                }
+
+                // State is invalid, so let's get a new token.
+                $state = $this->authenticator->refreshToken($state->getRefreshToken());
+                break;
+
+            case Auth::CLIENT_ENTITY:
+                $state = $this->session->get(Auth::CLIENT_ENTITY);
+
+                if ($this->isStateValid($state)) {
+                    return $state->getAccessToken();
+                }
+
+                $state = $this->authenticator->requestCredentialsToken();
+
+                break;
+
+            default:
+                throw new \InvalidArgumentException(sprintf('[%s] is an unsupported type.'), $type);
         }
 
-        $state = $this->authenticator->requestAccessToken();
-
-        $this->updateSession($state);
+        $this->updateSession($type, $state);
 
         return $state->getAccessToken();
     }
@@ -56,34 +117,33 @@ class Manager
     /**
      * Update the access_token stored in the session.
      *
+     * @param string $type
      * @param State $state
      *
      * @return void
      */
-    private function updateSession(State $state) : void
+    private function updateSession(string $type, State $state) : void
     {
-        if (!is_null($this->session)) {
-            $this->session->put([
-                'expires_at' => $state->getExpiresAt(),
-                'access_token' => $state->getAccessToken()
-            ]);
-        }
+        $this->session->put([
+            $type => $state
+        ]);
     }
 
     /**
      * Check if the current state is valid.
      *
-     * @return void
+     * @param State|null $state
+     *
+     * @return bool
      */
-    private function isTokenValid() : bool
+    private function isStateValid(?State $state) : bool
     {
-        // Return early if no session is being used.
-        if (is_null($this->session)) {
+        if (is_null($state)) {
             return false;
         }
 
-        $expiresAt = $this->session->get('expires_at', false);
-        $accessToken = $this->session->get('access_token', false);
+        $expiresAt = $state->getExpiresAt();
+        $accessToken = $state->getAccessToken();
 
         return
             $expiresAt &&

@@ -2,8 +2,10 @@
 
 namespace Spotify\Resources;
 
+use stdClass;
 use Spotify\Http\Request;
 use Spotify\Auth\Manager;
+use Spotify\Constants\Auth;
 
 /**
  * Class Resource
@@ -37,10 +39,26 @@ abstract class Resource
     /**
      * Fetch an access token from the Auth Manager.
      *
+     * @param string $type
+     *
      * @return string
      */
-    protected function getAccessToken() : string
+    protected function getAccessToken(string $type) : string
     {
-        return $this->manager->getAccessToken();
+        return $this->manager->getAccessToken($type);
+    }
+
+    /**
+     * Get the profile of the currently authenticated user.
+     *
+     * @return stdClass
+     */
+    protected function getUserProfile() : stdClass
+    {
+        $url = sprintf('%s/me', self::API_BASE_URL);
+
+        return $this->request->get($url, [
+            'Authorization' => sprintf('Bearer %s', $this->getAccessToken(Auth::USER_ENTITY)),
+        ]);
     }
 }

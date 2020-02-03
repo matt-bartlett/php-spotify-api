@@ -40,6 +40,9 @@ class Request
      * @param array $headers
      * @param array $parameters
      *
+     * @throws \Spotify\Exceptions\SpotifyRequestException
+     * @throws \Spotify\Exceptions\AuthenticationException
+     *
      * @return stdClass
      */
     public function get(string $url, array $headers = [], array $parameters = []) : stdClass
@@ -58,10 +61,7 @@ class Request
                 case 401:
                     throw new AuthenticationException;
                 default:
-                    throw new SpotifyRequestException(
-                        $e->getMessage(),
-                        $e->getCode()
-                    );
+                    throw new SpotifyRequestException($url, $e->getCode(), $e);
             }
         }
 
@@ -75,10 +75,10 @@ class Request
      * @param array $headers
      * @param array $parameters
      *
-     * @return stdClass
+     * @throws \Spotify\Exceptions\SpotifyRequestException
+     * @throws \Spotify\Exceptions\AuthenticationException
      *
-     * @throws AuthenticationException
-     * @throws SpotifyRequestException
+     * @return stdClass
      */
     public function post(string $url, array $headers = [], array $parameters = []) : stdClass
     {
@@ -95,10 +95,42 @@ class Request
                 case 401:
                     throw new AuthenticationException;
                 default:
-                    throw new SpotifyRequestException(
-                        $e->getMessage(),
-                        $e->getCode()
-                    );
+                    throw new SpotifyRequestException($url, $e->getCode(), $e);
+            }
+        }
+
+        return json_decode($response->getBody());
+    }
+
+
+    /**
+     * Send JSON request using the Guzzle HTTP Client
+     *
+     * @todo Refactor to use Guzzle request options. http://docs.guzzlephp.org/en/stable/request-options.html#json
+     *
+     * @param string $method
+     * @param string $url
+     * @param array $headers
+     * @param array $parameters
+     *
+     * @throws \Spotify\Exceptions\SpotifyRequestException
+     * @throws \Spotify\Exceptions\AuthenticationException
+     *
+     * @return stdClass
+     */
+    public function json(string $method, string $url, array $headers, array $parameters = [])
+    {
+        try {
+            $response = $this->guzzle->request($method, $url, [
+                'headers' => $headers,
+                'json' => $parameters,
+            ]);
+        } catch (ClientException $e) {
+            switch ($e->getCode()) {
+                case 401:
+                    throw new AuthenticationException;
+                default:
+                    throw new SpotifyRequestException($url, $e->getCode(), $e);
             }
         }
 

@@ -14,7 +14,17 @@ class State
     /**
      * @var string
      */
+    private $type;
+
+    /**
+     * @var string
+     */
     private $accessToken;
+
+    /**
+     * @var string
+     */
+    private $refreshToken;
 
     /**
      * @var int
@@ -27,13 +37,17 @@ class State
     private $expiresIn;
 
     /**
+     * @param string $type
      * @param string $accessToken
      * @param int $expiresIn
+     * @param string|null $refreshToken
      */
-    public function __construct(string $accessToken, int $expiresIn)
+    public function __construct(string $type, string $accessToken, int $expiresIn, string $refreshToken = null)
     {
+        $this->type = $type;
         $this->expiresIn = $expiresIn;
         $this->accessToken = $accessToken;
+        $this->refreshToken = $refreshToken;
         $this->calculateTokenExpiry();
     }
 
@@ -46,11 +60,31 @@ class State
     }
 
     /**
+     * @return string
+     */
+    public function getRefreshToken() : ?string
+    {
+        return $this->refreshToken;
+    }
+
+    /**
      * @return int
      */
     public function getExpiresAt() : int
     {
         return $this->expiresAt;
+    }
+
+    /**
+     * @return array
+     */
+    public function toArray() : array
+    {
+        return [
+            'expires_at' => $this->getExpiresAt(),
+            'access_token' => $this->getAccessToken(),
+            'resfresh_token' => $this->getRefreshToken(),
+        ];
     }
 
     /**
