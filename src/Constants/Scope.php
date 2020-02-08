@@ -85,4 +85,3 @@ class Scope
     public const USER_READ_PLAYBACK_STATE = 'user-read-playback-state';
     public const USER_MODIFY_PLAYBACK_STATE = 'user-modify-playback-state';
 }
-

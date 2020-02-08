@@ -38,6 +38,11 @@ abstract class Resource
         $this->request = $request;
     }
 
+    public function getManager()
+    {
+        return $this->manager;
+    }
+
     /**
      * Fetch an access token from the Auth Manager.
      *

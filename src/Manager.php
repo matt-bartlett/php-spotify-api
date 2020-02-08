@@ -12,7 +12,7 @@ use Spotify\Exceptions\UserHasNotAuthorizedException;
 /**
  * Class Manager
  *
- * @package Spotify\Auth
+ * @package Spotify
  */
 class Manager
 {
@@ -45,7 +45,7 @@ class Manager
      *
      * @return string
      */
-    public function getAuthorizationUrl(array $scopes, bool $showDialog) : string
+    public function getAuthorizationUrl(array $scopes, bool $showDialog = false) : string
     {
         return $this->authenticator->getAuthorizationUrl($scopes, $showDialog);
     }

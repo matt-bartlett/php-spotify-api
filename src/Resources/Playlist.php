@@ -69,8 +69,12 @@ class Playlist extends Resource
      *
      * @return stdClass
      */
-    public function createPlaylist(string $name, bool $public = true, bool $collaborative = false, string $description = null) : stdClass
-    {
+    public function createPlaylist(
+        string $name,
+        bool $public = true,
+        bool $collaborative = false,
+        string $description = null
+    ) : stdClass {
         $user = $this->getUserProfile();
 
         $url = sprintf('%s/users/%s/playlists', self::API_BASE_URL, $user->id);
