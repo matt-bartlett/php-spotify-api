@@ -27,7 +27,7 @@ class Playlist extends Resource
 
         $payload = [
             RequestOptions::HEADERS => [
-                'Authorization' => sprintf('Bearer %s', $this->getAccessToken(Auth::CLIENT_ENTITY)),
+                'Authorization' => sprintf('Bearer %s', $this->getManager()->getAccessToken(Auth::CLIENT_ENTITY)),
             ]
         ];
 
@@ -47,7 +47,7 @@ class Playlist extends Resource
 
         $payload = [
             RequestOptions::HEADERS => [
-                'Authorization' => sprintf('Bearer %s', $this->getAccessToken(Auth::CLIENT_ENTITY)),
+                'Authorization' => sprintf('Bearer %s', $this->getManager()->getAccessToken(Auth::CLIENT_ENTITY)),
             ]
         ];
 
@@ -81,7 +81,7 @@ class Playlist extends Resource
 
         $payload = [
             RequestOptions::HEADERS => [
-                'Authorization' => sprintf('Bearer %s', $this->getAccessToken(Auth::USER_ENTITY)),
+                'Authorization' => sprintf('Bearer %s', $this->getManager()->getAccessToken(Auth::USER_ENTITY)),
             ],
             RequestOptions::JSON => [
                 'name' => $name,

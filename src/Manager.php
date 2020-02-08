@@ -84,6 +84,8 @@ class Manager
             case Auth::USER_ENTITY:
                 $state = $this->session->get(Auth::USER_ENTITY);
 
+                // If no state exists in the session, we can
+                // assume the user has yet to authorize themselves.
                 if (is_null($state)) {
                     throw new UserHasNotAuthorizedException;
                 }

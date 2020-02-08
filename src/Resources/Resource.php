@@ -38,21 +38,14 @@ abstract class Resource
         $this->request = $request;
     }
 
-    public function getManager()
+    /**
+     * Fetch the Auth Manager.
+     *
+     * @return \Spotify\Manager
+     */
+    protected function getManager() : Manager
     {
         return $this->manager;
-    }
-
-    /**
-     * Fetch an access token from the Auth Manager.
-     *
-     * @param string $type
-     *
-     * @return string
-     */
-    protected function getAccessToken(string $type) : string
-    {
-        return $this->manager->getAccessToken($type);
     }
 
     /**
@@ -66,7 +59,7 @@ abstract class Resource
 
         $payload = [
             RequestOptions::HEADERS => [
-                'Authorization' => sprintf('Bearer %s', $this->getAccessToken(Auth::USER_ENTITY)),
+                'Authorization' => sprintf('Bearer %s', $this->getManager()->getAccessToken(Auth::USER_ENTITY)),
             ]
         ];
 
