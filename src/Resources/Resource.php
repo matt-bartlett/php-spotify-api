@@ -43,7 +43,7 @@ abstract class Resource
      *
      * @return \Spotify\Manager
      */
-    protected function getManager() : Manager
+    public function getManager() : Manager
     {
         return $this->manager;
     }

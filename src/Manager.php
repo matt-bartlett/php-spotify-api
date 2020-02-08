@@ -45,7 +45,7 @@ class Manager
      *
      * @return string
      */
-    public function getAuthorizationUrl(array $scopes, bool $showDialog = false) : string
+    public function getAuthorizationUrl(array $scopes, bool $showDialog) : string
     {
         return $this->authenticator->getAuthorizationUrl($scopes, $showDialog);
     }

@@ -44,7 +44,7 @@ class AuthenticatorTest extends TestCase
 
         $url = $this->authenticator->getAuthorizationUrl($scopes, false);
 
-        $expected = "https://accounts.spotify.com/authorize?scope=user-read-email&client_id=client-id&show_dialog=0&redirect_uri=redirect-url&response_type=code";
+        $expected = "https://accounts.spotify.com/authorize?scope=user-read-email&client_id=client-id&show_dialog=false&redirect_uri=redirect-url&response_type=code";
 
         $this->assertEquals($url, $expected);
     }

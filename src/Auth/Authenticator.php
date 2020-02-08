@@ -14,7 +14,7 @@ use Spotify\Contracts\Auth\Authenticator as AuthInterface;
 /**
  * Class Authenticator
  *
- * @package Spotify\Auth\Flows
+ * @package Spotify\Auth
  */
 class Authenticator implements AuthInterface
 {
@@ -61,10 +61,13 @@ class Authenticator implements AuthInterface
         // Concatenate scopes.
         $scopes = isset($scopes) ? implode(' ', $scopes) : null;
 
+        // Convert boolean to string for the authorization request.
+        $force = ($showDialog) ? 'true' : 'false';
+
         $parameters = [
             'scope' => $scopes,
             'client_id' => $this->credentials->getClientId(),
-            'show_dialog' => $showDialog,
+            'show_dialog' => $force,
             'redirect_uri' => $this->credentials->getRedirectUrl(),
             'response_type' => 'code',
         ];
