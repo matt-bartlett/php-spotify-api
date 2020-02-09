@@ -22,4 +22,13 @@ interface Session
      * @return void
      */
     public function put(array $data) : void;
+
+    /**
+     * Remove data from the session.
+     *
+     * @param string $key
+     *
+     * @return void
+     */
+    public function forget(string $key) : void;
 }

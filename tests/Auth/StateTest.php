@@ -21,9 +21,11 @@ class StateTest extends TestCase
         Carbon::setTestNow(Carbon::create(2019, 9, 1, 12, 0, 0));
 
         // Set testing variables.
+        $this->type = 'user';
         $this->expiresIn = 3600;
         $this->expiresAt = 1567342800;
         $this->accessToken = 'access-token-string';
+        $this->refreshToken = 'refresh-token';
 
         parent::setUp();
     }
@@ -33,9 +35,10 @@ class StateTest extends TestCase
      */
     public function test_state_is_instantiable() : void
     {
-        $state = new State($this->accessToken, $this->expiresIn);
+        $state = new State($this->type, $this->accessToken, $this->expiresIn);
 
         $this->assertInstanceOf(State::class, $state);
+        $this->assertEquals($state->getRefreshToken(), null);
     }
 
     /**
@@ -43,9 +46,16 @@ class StateTest extends TestCase
      */
     public function test_state_increments_token_expiry() : void
     {
-        $state = new State($this->accessToken, $this->expiresIn);
+        $state = new State(
+            $this->type,
+            $this->accessToken,
+            $this->expiresIn,
+            $this->refreshToken
+        );
 
+        $this->assertEquals($state->getType(), $this->type);
         $this->assertEquals($state->getExpiresAt(), $this->expiresAt);
         $this->assertEquals($state->getAccessToken(), $this->accessToken);
+        $this->assertEquals($state->getRefreshToken(), $this->refreshToken);
     }
 }

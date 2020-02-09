@@ -3,6 +3,9 @@
 namespace Spotify\Resources;
 
 use stdClass;
+use Spotify\Constants\Auth;
+use Spotify\Constants\Http;
+use GuzzleHttp\RequestOptions;
 
 /**
  * Class Playlist
@@ -22,9 +25,13 @@ class Playlist extends Resource
     {
         $url = sprintf('%s/playlists/%s', self::API_BASE_URL, $playlist);
 
-        return $this->request->get($url, [
-            'Authorization' => sprintf('Bearer %s', $this->getAccessToken()),
-        ]);
+        $payload = [
+            RequestOptions::HEADERS => [
+                'Authorization' => sprintf('Bearer %s', $this->getManager()->getAccessToken(Auth::CLIENT_ENTITY)),
+            ]
+        ];
+
+        return $this->request->send(Http::GET, $url, $payload);
     }
 
     /**
@@ -38,8 +45,76 @@ class Playlist extends Resource
     {
         $url = sprintf('%s/playlists/%s/tracks', self::API_BASE_URL, $playlist);
 
-        return $this->request->get($url, [
-            'Authorization' => sprintf('Bearer %s', $this->getAccessToken()),
-        ]);
+        $payload = [
+            RequestOptions::HEADERS => [
+                'Authorization' => sprintf('Bearer %s', $this->getManager()->getAccessToken(Auth::CLIENT_ENTITY)),
+            ]
+        ];
+
+        return $this->request->send(Http::GET, $url, $payload);
+    }
+
+    /**
+     * Create a Playlist for the currently authenticated user.
+     *
+     * Scopes required:
+     *
+     *      playlist-modify-public  (if Play is to be Public)
+     *      playlist-modify-private (if Playist is to be Private)
+     *
+     * @param string $name
+     * @param bool $public
+     * @param bool $collaborative
+     * @param string $description
+     *
+     * @return stdClass
+     */
+    public function createPlaylist(
+        string $name,
+        bool $public = true,
+        bool $collaborative = false,
+        string $description = null
+    ) : stdClass {
+        $user = $this->getUserProfile();
+
+        $url = sprintf('%s/users/%s/playlists', self::API_BASE_URL, $user->id);
+
+        $payload = [
+            RequestOptions::HEADERS => [
+                'Authorization' => sprintf('Bearer %s', $this->getManager()->getAccessToken(Auth::USER_ENTITY)),
+            ],
+            RequestOptions::JSON => [
+                'name' => $name,
+                'public' => $public,
+                'description' => $description,
+                'collaborative' => $collaborative,
+            ],
+        ];
+
+        return $this->request->send(Http::POST, $url, $payload);
+    }
+
+    /**
+     * Add one or more tracks to a user’s playlist.
+     *
+     * @param string $playlistId
+     * @param array $tracks
+     *
+     * @return stdClass
+     */
+    public function addTracksToPlaylist(string $playlistId, array $tracks) : stdClass
+    {
+        $url = sprintf('%s/playlists/%s/tracks', self::API_BASE_URL, $playlistId);
+
+        $payload = [
+            RequestOptions::HEADERS => [
+                'Authorization' => sprintf('Bearer %s', $this->getManager()->getAccessToken(Auth::USER_ENTITY)),
+            ],
+            RequestOptions::JSON => [
+                'uris' => $tracks,
+            ]
+        ];
+
+        return $this->request->send(Http::POST, $url, $payload);
     }
 }
