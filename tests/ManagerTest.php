@@ -1,6 +1,6 @@
 <?php
 
-namespace Spotify\Tests\Auth;
+namespace Spotify\Tests;
 
 use Carbon\Carbon;
 use Spotify\Manager;

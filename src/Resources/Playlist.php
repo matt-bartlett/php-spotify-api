@@ -93,4 +93,28 @@ class Playlist extends Resource
 
         return $this->request->send(Http::POST, $url, $payload);
     }
+
+    /**
+     * Add one or more tracks to a user’s playlist.
+     *
+     * @param string $playlistId
+     * @param array $tracks
+     *
+     * @return stdClass
+     */
+    public function addTracksToPlaylist(string $playlistId, array $tracks) : stdClass
+    {
+        $url = sprintf('%s/playlists/%s/tracks', self::API_BASE_URL, $playlistId);
+
+        $payload = [
+            RequestOptions::HEADERS => [
+                'Authorization' => sprintf('Bearer %s', $this->getManager()->getAccessToken(Auth::USER_ENTITY)),
+            ],
+            RequestOptions::JSON => [
+                'uris' => $tracks,
+            ]
+        ];
+
+        return $this->request->send(Http::POST, $url, $payload);
+    }
 }

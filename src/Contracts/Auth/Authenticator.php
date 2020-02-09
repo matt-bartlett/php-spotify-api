@@ -26,7 +26,7 @@ interface Authenticator
     public function requestAccessToken(string $code) : State;
 
     /**
-     * Authenticate with the Client Credentials Flow
+     * Authenticate with Spotify using the Client Credentials Flow.
      *
      * @return \Spotify\Auth\State
      */

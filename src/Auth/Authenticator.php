@@ -62,12 +62,12 @@ class Authenticator implements AuthInterface
         $scopes = isset($scopes) ? implode(' ', $scopes) : null;
 
         // Convert boolean to string for the authorization request.
-        $force = ($showDialog) ? 'true' : 'false';
+        $showDialog = ($showDialog) ? 'true' : 'false';
 
         $parameters = [
             'scope' => $scopes,
             'client_id' => $this->credentials->getClientId(),
-            'show_dialog' => $force,
+            'show_dialog' => $showDialog,
             'redirect_uri' => $this->credentials->getRedirectUrl(),
             'response_type' => 'code',
         ];
