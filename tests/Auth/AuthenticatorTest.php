@@ -98,7 +98,6 @@ class AuthenticatorTest extends TestCase
         $result = new stdClass;
         $result->expires_in = 3600;
         $result->access_token = 'new-access-token';
-        $result->refresh_token = 'new-refresh-token';
 
         $this->requestMock->expects($this->once())
             ->method('send')
@@ -109,6 +108,5 @@ class AuthenticatorTest extends TestCase
         $this->assertInstanceOf(State::class, $state);
         $this->assertEquals($state->getType(), Auth::USER_ENTITY);
         $this->assertEquals($state->getAccessToken(), 'new-access-token');
-        $this->assertEquals($state->getRefreshToken(), 'new-refresh-token');
     }
 }

@@ -127,9 +127,7 @@ class Manager
      */
     private function updateSession(string $type, State $state) : void
     {
-        $this->session->put([
-            $type => $state
-        ]);
+        $this->session->put($type, $state);
     }
 
     /**

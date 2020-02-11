@@ -2,8 +2,8 @@
 
 namespace Spotify\Sessions;
 
+use Spotify\Auth\State;
 use Spotify\Contracts\Store\Session;
-use Illuminate\Contracts\Session\Session as LaravelSession;
 
 /**
  * Class GenericSessionHandler
@@ -12,6 +12,11 @@ use Illuminate\Contracts\Session\Session as LaravelSession;
  */
 class GenericSessionHandler implements Session
 {
+    /**
+     * @var string
+     */
+    private const SESSION_KEY_PREFIX = 'spotify_session';
+
     public function __construct()
     {
         if (session_status() === PHP_SESSION_NONE) {
@@ -29,22 +34,24 @@ class GenericSessionHandler implements Session
      */
     public function get(string $key, $default = null)
     {
-        return (isset($_SESSION[$key])) ? $_SESSION[$key] : $default;
+        $key = sprintf('%s_%s', self::SESSION_KEY_PREFIX, $key);
+
+        return $_SESSION[$key] ?? $default;
     }
 
     /**
      * Add data to the session.
      *
-     * @param array $data
+     * @param string $key
+     * @param State $data
      *
      * @return void
      */
-    public function put(array $data) : void
+    public function put(string $key, State $data) : void
     {
-        $key = array_keys($data);
-        $value = $data[$key];
+        $key = sprintf('%s_%s', self::SESSION_KEY_PREFIX, $key);
 
-        $_SESSION[$key] = $value;
+        $_SESSION[$key] = $data;
     }
 
     /**
@@ -56,6 +63,8 @@ class GenericSessionHandler implements Session
      */
     public function forget(string $key) : void
     {
+        $key = sprintf('%s_%s', self::SESSION_KEY_PREFIX, $key);
+
         unset($_SESSION[$key]);
     }
 }

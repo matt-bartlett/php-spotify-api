@@ -2,6 +2,7 @@
 
 namespace Spotify\Sessions;
 
+use Spotify\Auth\State;
 use Spotify\Contracts\Store\Session;
 use Illuminate\Contracts\Session\Session as LaravelSession;
 
@@ -12,6 +13,11 @@ use Illuminate\Contracts\Session\Session as LaravelSession;
  */
 class LaravelSessionHandler implements Session
 {
+    /**
+     * @var string
+     */
+    private const SESSION_KEY_PREFIX = 'spotify_session';
+
     /**
      * @var \Illuminate\Contracts\Session\Session
      */
@@ -35,19 +41,26 @@ class LaravelSessionHandler implements Session
      */
     public function get(string $key, $default = null)
     {
+        $key = sprintf('%s_%s', self::SESSION_KEY_PREFIX, $key);
+
         return $this->session->get($key, $default);
     }
 
     /**
      * Add data to the session.
      *
-     * @param array $data
+     * @param string $key
+     * @param State $data
      *
      * @return void
      */
-    public function put(array $data) : void
+    public function put(string $key, State $data) : void
     {
-        $this->session->put($data);
+        $key = sprintf('%s_%s', self::SESSION_KEY_PREFIX, $key);
+
+        $this->session->put([
+            $key => $data
+        ]);
     }
 
     /**
@@ -59,6 +72,8 @@ class LaravelSessionHandler implements Session
      */
     public function forget(string $key) : void
     {
+        $key = sprintf('%s_%s', self::SESSION_KEY_PREFIX, $key);
+
         $this->session->forget($key);
     }
 }

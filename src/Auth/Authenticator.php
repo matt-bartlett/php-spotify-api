@@ -145,8 +145,7 @@ class Authenticator implements AuthInterface
         return new State(
             Auth::USER_ENTITY,
             $response->access_token,
-            $response->expires_in,
-            $response->refresh_token
+            $response->expires_in
         );
     }
 
