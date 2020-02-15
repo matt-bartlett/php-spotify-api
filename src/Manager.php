@@ -7,7 +7,7 @@ use Spotify\Auth\State;
 use Spotify\Constants\Auth;
 use Spotify\Contracts\Store\Session;
 use Spotify\Contracts\Auth\Authenticator;
-use Spotify\Exceptions\UserHasNotAuthorizedException;
+use Spotify\Exceptions\UserRequiresAuthorizationException;
 
 /**
  * Class Manager
@@ -74,7 +74,6 @@ class Manager
      * @param string $type
      *
      * @throws \InvalidArgumentException
-     * @throws \Spotify\Exceptions\UserHasNotAuthorizedException
      *
      * @return string
      */
@@ -82,39 +81,70 @@ class Manager
     {
         switch ($type) {
             case Auth::USER_ENTITY:
-                $state = $this->session->get(Auth::USER_ENTITY);
-
-                // If no state exists in the session, we can
-                // assume the user has yet to authorize themselves.
-                if (is_null($state)) {
-                    throw new UserHasNotAuthorizedException;
-                }
-
-                if ($this->isStateValid($state)) {
-                    return $state->getAccessToken();
-                }
-
-                // State is invalid, so let's get a new token.
-                $state = $this->authenticator->refreshToken($state->getRefreshToken());
+                $state = $this->getUserAccessToken();
                 break;
 
             case Auth::CLIENT_ENTITY:
-                $state = $this->session->get(Auth::CLIENT_ENTITY);
-
-                if ($this->isStateValid($state)) {
-                    return $state->getAccessToken();
-                }
-
-                $state = $this->authenticator->requestCredentialsToken();
+                $state = $this->getClientAccessToken();
                 break;
 
             default:
                 throw new \InvalidArgumentException(sprintf('[%s] is an unsupported type.', $type));
         }
 
-        $this->updateSession($type, $state);
-
         return $state->getAccessToken();
+    }
+
+    /**
+     * @return State
+     */
+    private function getClientAccessToken() : State
+    {
+        $state = $this->session->get(Auth::CLIENT_ENTITY);
+
+        if ($this->isStateValid($state)) {
+            return $state;
+        }
+
+        // State is invalid, so let's get a new token.
+        $state = $this->authenticator->requestCredentialsToken();
+
+        $this->updateSession(Auth::CLIENT_ENTITY, $state);
+
+        return $state;
+    }
+
+    /**
+     * @return State
+     *
+     * @throws \Spotify\Exceptions\UserRequiresAuthorizationException
+     */
+    private function getUserAccessToken() : State
+    {
+        $state = $this->session->get(Auth::USER_ENTITY);
+
+        // If no state exists in the session, we can
+        // assume the user has yet to authorize themselves.
+        if (is_null($state)) {
+            throw new UserRequiresAuthorizationException;
+        }
+
+        if ($this->isStateValid($state)) {
+            return $state;
+        }
+
+        // After previously requesting a token using the refresh_token,
+        // user will need to re-authorize themselves.
+        if (is_null($state->getRefreshToken())) {
+            throw new UserRequiresAuthorizationException;
+        }
+
+        // State is invalid, so let's get a new token.
+        $state = $this->authenticator->refreshToken($state->getRefreshToken());
+
+        $this->updateSession(Auth::USER_ENTITY, $state);
+
+        return $state;
     }
 
     /**
