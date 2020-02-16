@@ -207,4 +207,26 @@ class ManagerTest extends TestCase
 
         $this->assertEquals($token, 'new-access-token');
     }
+
+    /**
+     * @return void
+     */
+    public function test_refreshing_token_fails_having_already_refreshed() : void
+    {
+        $this->expectException(UserRequiresAuthorizationException::class);
+        $this->expectExceptionMessage('User needs to authorize.');
+
+        $state = new State(Auth::USER_ENTITY, 'access-token', 3600);
+
+        $this->sessionMock->expects($this->once())
+            ->method('get')
+            ->willReturn($state);
+
+        // Set Carbon 2 hours ahead.
+        Carbon::setTestNow(Carbon::create(2019, 9, 1, 14, 0, 0));
+
+        $manager = new Manager($this->authMock, $this->sessionMock);
+
+        $manager->getAccessToken(Auth::USER_ENTITY);
+    }
 }
