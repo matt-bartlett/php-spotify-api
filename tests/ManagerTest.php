@@ -10,7 +10,7 @@ use InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
 use Spotify\Contracts\Store\Session;
 use Spotify\Contracts\Auth\Authenticator;
-use Spotify\Exceptions\UserHasNotAuthorizedException;
+use Spotify\Exceptions\UserRequiresAuthorizationException;
 
 class ManagerTest extends TestCase
 {
@@ -155,8 +155,8 @@ class ManagerTest extends TestCase
      */
     public function test_user_retrieving_access_token_without_authorizing_fails() : void
     {
-        $this->expectException(UserHasNotAuthorizedException::class);
-        $this->expectExceptionMessage('User has not yet been authorized.');
+        $this->expectException(UserRequiresAuthorizationException::class);
+        $this->expectExceptionMessage('User needs to authorize.');
 
         $manager = new Manager($this->authMock, $this->sessionMock);
 
@@ -206,5 +206,27 @@ class ManagerTest extends TestCase
         $token = $manager->getAccessToken(Auth::USER_ENTITY);
 
         $this->assertEquals($token, 'new-access-token');
+    }
+
+    /**
+     * @return void
+     */
+    public function test_refreshing_token_fails_having_already_refreshed() : void
+    {
+        $this->expectException(UserRequiresAuthorizationException::class);
+        $this->expectExceptionMessage('User needs to authorize.');
+
+        $state = new State(Auth::USER_ENTITY, 'access-token', 3600);
+
+        $this->sessionMock->expects($this->once())
+            ->method('get')
+            ->willReturn($state);
+
+        // Set Carbon 2 hours ahead.
+        Carbon::setTestNow(Carbon::create(2019, 9, 1, 14, 0, 0));
+
+        $manager = new Manager($this->authMock, $this->sessionMock);
+
+        $manager->getAccessToken(Auth::USER_ENTITY);
     }
 }

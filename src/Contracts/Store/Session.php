@@ -2,6 +2,8 @@
 
 namespace Spotify\Contracts\Store;
 
+use Spotify\Auth\State;
+
 interface Session
 {
     /**
@@ -17,11 +19,12 @@ interface Session
     /**
      * Add data to the session.
      *
-     * @param array $data
+     * @param string $key
+     * @param State $data
      *
      * @return void
      */
-    public function put(array $data) : void;
+    public function put(string $key, State $data) : void;
 
     /**
      * Remove data from the session.
