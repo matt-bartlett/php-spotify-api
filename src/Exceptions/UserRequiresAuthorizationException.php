@@ -7,7 +7,7 @@ class UserRequiresAuthorizationException extends \Exception
     /**
      * @var int
      */
-    protected $code = 403;
+    protected $code = 401;
 
     /**
      * @var string
